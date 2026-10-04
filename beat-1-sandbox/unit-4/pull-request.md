@@ -15,15 +15,11 @@ label is not graded.
 
 **Pull request**
 
-[Link to the pull request you opened. It must be the pull request's own page on the Path
-Review repo, not your fork's branch page.]
+https://github.com/codepath/pathreview-ai301-fa26-s1/pull/85
 
 **Branch**
 
-[The name of the branch the pull request comes from, exactly as it appears in your fork.
-The naming shape is a type prefix, then the issue number, then a short description. **The
-issue number in the branch name must be the number of the issue the pull request fixes** —
-a name carrying any other number does not satisfy this field.]
+fix/72-verify-password-fail-closed
 
 ## Eval iterations
 
@@ -32,28 +28,24 @@ fields.
 
 **Run history**
 
-[The agreement score of each run you did, in order. A single run is a complete answer if
-only one run occurred. **The last score in your list must match the agreement line in the
-`eval-run.txt` you committed** — that file is the record of your final run.]
+1. Smoke run, `--limit 4` (not scored, sanity check only): 4/4 agreement, first-draft tool, one package from each category.
+2. `agreement: 16/20 scored items  (bar: 18/20: below the bar)` — first full run, first-draft tool. Categories: `clear-accept 3/7  not-tested 4/4  silent-drift 4/4  standards-wall 2/2  unreviewable 3/3`. Four clear-accept packages (`pkg-05`, `pkg-08`, `pkg-13`, `pkg-16`) wrongly failed "Test evidence."
+3. Targeted re-run, `--only pkg-05,pkg-08,pkg-13,pkg-16,pkg-02,pkg-11,pkg-19,pkg-04,pkg-07,pkg-10,pkg-14,calib-04 --include-calibration` after revising the Test evidence check: 11/11 agreement (not a full/bar run) — the four wrongly-rejected packages now passed, and every already-agreeing clear-accept and not-tested canary (plus the `calib-04` trap) still agreed.
+4. `agreement: 20/20 scored items  (bar: 18/20: PASS)` — confirming full run, categories `clear-accept 7/7  not-tested 4/4  silent-drift 4/4  standards-wall 2/2  unreviewable 3/3`. This is the run saved to `eval-run.txt`.
 
 **Package analysis**
 
-[Pick one scored package (`pkg-01` through `pkg-20` — the four `calib-` packages are never
-scored). Name it by id, say what your rubric decided and what the gold label said, and
-explain why your rubric read it that way.]
+`pkg-09` (sharkdp/fd#2053, "surface the inner error in `--changed-` date parsing failures"). Gold label: `reject` (category `silent-drift`, note: "inner-error surfacing implemented, but the diff also rewords unrelated flag help text and adds a new `--time-format` flag the plan explicitly scopes out, under a description claiming 'exactly as planned'"). My tool's verdict: `reject`, failing "Plan fidelity." The plan's scope line reads "Not in scope: new flags, other error messages, or accepted date formats," and the diff adds exactly that: a new `--time-format` option, plus reworded help text on two unrelated flags and a trim change in `error.rs`'s generic error printer — none of it named anywhere in `plan.md`, and no deviation note covers it. The description compounds it by claiming "Error messages for date parsing improved exactly as planned," which is true of the inner-error hunk alone but false of the diff as a whole once the unannounced flag and reworded help text are counted. My rubric reads this as drift rather than a comms problem specifically because the check's evidence pairing is "every changed hunk against the plan's named scope, and the description's fidelity claim against the diff" — the extra hunks fail the first half regardless of how good the core fix is, which is the same reasoning gold gives ("arguable because the extra work is adjacent, but the new flag is unannounced scope").
 
 **Check rationale**
 
-[Quote one check from the `rubric.md` you uploaded to `tools/pr-precheck/`, exactly as it reads now.
-Then say why it reads that way — what you revised to get there, or what you rejected in
-favour of it.]
+> Pass if every changed file or hunk falls inside the plan's stated scope, or is covered by an explicit deviation note (in `plan.md` or restated in the description) explaining what changed and why, AND the description's fidelity claims match the diff exactly — it claims neither more than the diff delivers nor less. Fail if the diff touches a file, adds a flag/option, or changes behavior the plan did not scope in and no deviation note covers it (an "adjacent" or "while I'm in there" addition counts, however small), or if the description asserts something the diff contradicts in either direction (claiming full fidelity over an untouched file the diff silently changes; claiming a capability — e.g. "docs updated" — that the diff does not contain). An honestly stated, explicitly scoped-out deferral that both the plan and the description name is not drift and passes.
+
+This is "Plan fidelity" in `rubric.md`, exactly as it reads now. I wrote the "however small" clause on purpose after reading the five `silent-drift` packages together: `pkg-03`'s `truncate()` rewrite and new config option, `pkg-06`'s renaming pass and new settings flag, `pkg-09`'s new `--time-format` flag, and `calib-03`'s silent rewrite of an untouched file are all different sizes of the same mistake — an addition the plan never scoped, however adjacent or small, riding along with a correct core fix. I rejected a softer version that would only flag additions above some size or prominence threshold, because `pkg-09`'s extra flag is genuinely small next to the real fix, and a size threshold is exactly what would have let it through.
 
 **Trade-offs**
 
-[Every check gives something up. Any one of these is a complete answer: a package whose
-result it changes, a canary you re-ran with `--only`, a case you accept it will miss, or a
-stated reason nothing changed elsewhere. "Nothing changed, and here is how I know" earns
-the point in full when the reason follows.]
+My first-draft "Test evidence" check required a shown before/after transcript for *every* scenario the plan's test plan named, with no exception. That wording cost four genuine clear-accepts on the first full run (`pkg-05`, `pkg-08`, `pkg-13`, `pkg-16`): each has a real transcript for its primary repro, but covers a secondary scenario (a same-key warning, a control case) only through a named regression test and a stated suite-pass count, not a second manual transcript. I revised the check to accept a named regression test or a specific concrete claim for secondary scenarios, while still requiring a real shown transcript for the primary trigger. Before spending the confirming full run, I re-ran the four changed packages plus canaries from both ends with `--only`: the three already-agreeing clear-accepts (`pkg-02`, `pkg-11`, `pkg-19`), all four `not-tested` rejects (`pkg-04`, `pkg-07`, `pkg-10`, `pkg-14`), and the `calib-04` trap (whose rejection depends on a *named* scenario going completely unaddressed, not under-evidenced). All eleven still agreed, confirming the loosened wording gained the four real accepts without opening a gap for the vaguer evidence the `not-tested` category exists to catch.
 
 ---
 
