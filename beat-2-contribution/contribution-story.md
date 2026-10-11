@@ -8,10 +8,9 @@ format criteria grade exactly that. Your course repo link is the whole submissio
 files and no evidence uploads are part of Assignment 5.
 
 **Contribution Number:** [1]
-**Student:** [Student name]
-**GitHub Username:** [your GitHub username, exactly as it appears on your profile - no @, no
-profile URL. Your comments upstream are identified by this name.]
-**Issue:** [GitHub issue link]
+**Student:** Mike
+**GitHub Username:** mikeng07
+**Issue:** [not yet selected — unit 5 built and ran the scout; selection and claiming happen in unit 6, per the course's own pacing]
 **Pull Request:** [GitHub PR link, once opened]
 
 One repository, built across units 5 to 8, telling the whole story of your real
@@ -55,10 +54,9 @@ happened; these entries are the toolkit's own timeline.
 All four entries are graded. Keep every heading below, and fill each
 one in the week it belongs to.
 
-**Unit 5: [one line on the tool work]**
+**Unit 5: built issue-scout and ran it on a real wild search**
 
-[2-4 sentences: what you built (the scout, your strategy), what broke
-or fell short, what changed because of it.]
+Overlaid my Unit 1 `issue-select` skill into `issue-scout` (rubric and evidence guide carried over unchanged) and wrote `search-strategy.md`: three queries tracing to my fit profile's Python, CLI/dev-tooling, and named-exception-bug sentences, plus ranking filters over the free search-result fields. The real search broke twice: `gh search issues` silently returns zero results when a quoted multi-term `"A OR B OR C"` phrase is combined with `--language`/`--state` (worked around by splitting into single-keyword calls), and my first global ranking rule let one query's flood of zero-comment issues drown out the other two queries entirely (fixed by ranking each query group independently and interleaving round-robin). The rubric itself needed no patch: it correctly rejected a real candidate with an already-open PR and a real candidate with an unresolved design question embedded in its own issue body, both on the first pass. Full scan output in `~/.claude/skills/issue-scout/scan-output.md`; friction detail in `scan-notes.md`.
 
 **Unit 6: [one line on the tool work]**
 
