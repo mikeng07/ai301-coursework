@@ -11,7 +11,7 @@ files and no evidence uploads are part of Assignment 5.
 **Student:** Mike
 **GitHub Username:** mikeng07
 **Issue:** [SqrtInit raises AttributeError when called on Keras 2 and Keras 3](https://github.com/JesperDramsch/keras-complex/issues/37)
-**Pull Request:** [GitHub PR link, once opened]
+**Pull Request:** [fix: use np.sqrt instead of K.sqrt in SqrtInit](https://github.com/JesperDramsch/keras-complex/pull/43)
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -62,10 +62,9 @@ Overlaid my Unit 1 `issue-select` skill into `issue-scout` (rubric and evidence 
 
 Turned the voice guide from something I read before writing into something that actually gates a post: `voice-guard` reads `voice-guide.md` (now one canonical file at `~/.claude/skills/voice-guide.md`, with `repro-check/`, `plan-check/`, and `pr-precheck/` holding symlinks instead of three drifted copies) and grades a draft rule-by-rule before it goes out. It caught something real on run 1 of my actual claim comment for `keras-complex#37`: I'd written that the reporter's root cause "checks out" from my own code read, but I hadn't run anything yet — "checks out" implies verification my own rules don't let me claim from a static read alone. Rewrote it to name the action precisely ("I read `init.py` against `bn.py` and the two differ exactly the way you described") and re-ran the guard clean before posting; both runs are logged in `voice-guard/guard-log.md`. Separately, `JesperDramsch/keras-complex` ships no `CONTRIBUTING.md` at all, so `CLAUDE.local.md` is built from the README's "Status" section plus one orientation pass (repo structure, CI test matrix across Keras 2 and 3, the exact lines the bug lives in) instead — an honest "the input the assignment names doesn't exist here, so here's what I used instead," not a gap I papered over. It stayed under 60 lines by keeping only what the next session actually needs to act on, not a transcript of the orientation run itself.
 
-**Unit 7: [one line on the tool work]**
+**Unit 7: built ship-gate, caught a dirty diff on run 1, shipped clean on run 2**
 
-[2-4 sentences: the ship-gate and your gate manifest. What it produced
-on your real branch, what fought you, what changed because of it.]
+Built `ship-gate`, which wraps `pr-precheck` with `ship-manifest.md` — a repo-specific checklist I wrote and sourced line by line to `JesperDramsch/keras-complex`'s own `.github/workflows/test_python.yml` (no `CONTRIBUTING.md` exists there to lean on instead). The gate's first real run, against my first fix commit, never got to `pr-precheck`'s formal grade: while assembling the PR package I found my branch's diff still carried `repro_37.py`, a scratch reproduction script, riding along from an earlier commit — exactly what `pr-precheck`'s "Diff quality" check exists to catch. Fixed it by tagging that commit on my fork (`repro-37-evidence`, so my contribution story's reproduction link stays valid) and rebuilding the branch as one clean commit off the real `main`. Run 2, against the rebuilt branch, passed every manifest row (two excluded with dated reasons — a packaging check and a docs build a one-line numeric fix can't plausibly break; one test-matrix leg explicitly deferred to CI because this machine has no working Python 3.11) and got a clean `accept` from `pr-precheck`, so I opened the PR. Separately, this week's `voice-guard` runs caught one real near-miss before I even asked the guard: drafting the PR description, I'd written "81 passed → 84 passed" for the Keras-3 suite without ever having re-run the full suite after adding the new tests — re-ran it for real before the claim went anywhere. Full gate history: `~/.claude/skills/ship-gate/gate-log.md`; this week's guard runs: `~/.claude/skills/voice-guard/guard-log.md`.
 
 **Unit 8: [one line on the tool work]**
 
@@ -136,14 +135,16 @@ macOS, Python 3.13.5. Forked `JesperDramsch/keras-complex` to `mikeng07/keras-co
 
 - **Commit showing reproduction:** https://github.com/mikeng07/keras-complex/commit/cabb634562d75c6ccc80d7b7497f91f6e9578e56 (branch `fix/37-sqrtinit-attributeerror`)
 - **Screenshots/logs:** full traceback is in the commit message linked above; matches the issue's own Keras-3 traceback frame-for-frame.
-- **My findings:** reproduces exactly as described, on the first try, with no deviation from the issue's own repro steps. I additionally confirmed the reporter's proposed fix actually works: `K.constant(1 / np.sqrt(2), shape=(2,2), dtype='float32')` (swapping `K.sqrt` for `np.sqrt`, the same change `bn.py`'s working `sqrt_init` already uses) returns the expected `[[0.707, 0.707], [0.707, 0.707]]` tensor with no error. I have not yet checked the Keras-2 (TensorFlow 2.15 / `tf-keras`) environments the issue also lists — that's still open before I write the repro comment and move to the fix.
+- **My findings:** reproduces exactly as described, on the first try, with no deviation from the issue's own repro steps, on two of the issue's three named environments (TensorFlow 2.21.0/Keras 3.15.1, and TensorFlow 2.21.0 + tf-keras 2.21.0 with `TF_USE_LEGACY_KERAS=1`). I could not test the third, plain TensorFlow 2.15.1 (Keras 2.15): this machine has no working Python 3.11 (a dangling `/usr/local/bin/python3.11` symlink) and PyPI has no `2.15.1` wheel for the Python versions I do have — disclosed plainly in the repro report rather than silently skipped. I confirmed the reporter's proposed fix works on both tested environments: swapping `K.sqrt` for `np.sqrt` (the same change `bn.py`'s working `sqrt_init` already uses) returns the expected tensor with no error.
+
+Repro report (posted, then edited once — see Toolkit below): https://github.com/JesperDramsch/keras-complex/issues/37#issuecomment-6406852920
 
 **Toolkit**
 
-- Tool: repro-check (live mode, full package not yet graded — still only a claim comment plus this reproduction, no repro report posted upstream yet)
-- What it produced: a real, matching reproduction on one of the issue's three named environments, committed to my fork for a durable link
-- Difficulties: none in the reproduction itself; the only friction was the ~10-minute TensorFlow install, unrelated to the bug
-- What changed: nothing in the tool. Still need to reproduce on the Keras-2 environments before the repro report is complete.
+- Tool: repro-check (live mode, full package), scope.md overlaid to this issue
+- What it produced: a graded `reject` on my first posted repro comment — it was missing OS and install method, failing "Environment recorded" and "Steps runnable by a stranger" even though the reproduction itself was real and correct
+- Difficulties: I'd posted the comment before running the check against it. The gap was real: a stranger reading only my comment couldn't have told whether `complexnn` needed a source checkout or `pip install keras-complex`.
+- What changed: edited the live comment (not a duplicate post) to add the OS, the exact install command per environment, and re-graded: both checks now pass, full package verdict `accept`.
 
 ---
 
@@ -151,93 +152,93 @@ macOS, Python 3.13.5. Forked `JesperDramsch/keras-complex` to `mikeng07/keras-co
 
 **Analysis**
 
-[Your analysis of the root cause: what is causing the issue, traced
-to the files and functions involved.]
+`complexnn/init.py`'s `SqrtInit.__call__` (line 297) computes `K.constant(1 / K.sqrt(2), shape=shape, dtype=dtype)`. `K.sqrt` is `tensorflow.keras.backend`'s tensor sqrt; its first line reads `.dtype` off its argument, and `2` is a plain Python int, so it raises `AttributeError` before anything is computed. `complexnn/bn.py`'s `sqrt_init` function (line 17-19) computes the same value correctly with `(1 / np.sqrt(2)) * K.ones(shape)` — NumPy does the division on a plain number, and only the already-numeric result passes through Keras. Nothing inside the library calls `SqrtInit` (everything defaults to the working `bn.sqrt_init` function instead), which is why this shipped broken since 2017 with no test catching it.
 
 **Proposed Solution**
 
-[High-level description of your fix approach, and what you are
-deliberately NOT changing.]
+Swap `K.sqrt(2)` for `np.sqrt(2)` in `init.py` line 297 — the exact fix the issue's own reporter (who is also the repo's maintainer) proposed, and the same pattern `bn.py` already uses. Deliberately NOT touching: `bn.sqrt_init`'s separate, pre-existing bug where it ignores its own `dtype` argument — the issue explicitly flags this as "related but separate" and optional, and it's a different function with a different defect.
 
 **Implementation Plan**
 
-1. [Modify file X to do Y]
-2. [Add or change Z]
-3. [Update tests]
+1. `complexnn/init.py` line 297: `K.sqrt(2)` → `np.sqrt(2)`.
+2. `tests/test_init.py`: add `TestSqrtInit` — call `SqrtInit` directly, use it as `ComplexBN`'s `gamma_diag_initializer` (the layer-initializer path the issue also names), and check the result matches the already-working `bn.sqrt_init`.
+3. `README.md`: remove `SqrtInit` from the "not working in this release" list.
 
-[Record deviations here as they happen: what changed mid-build and
-why. A recorded deviation is honest work; silent drift is not.]
+No deviations from this plan during the build. One deviation from my *process*, recorded honestly rather than smoothed over: I built and tested the fix before posting the plan comment, not after — the plan comment says so directly rather than pretending the usual order happened.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: plan-check (live mode), scope.md overlaid to this issue (same real-world overlay pattern as `issue-scout` and `repro-check` got)
+- What it produced: a graded `accept` on the posted plan comment across all six required checks (grounded diagnosis, bounded scope with an explicit not-in-scope line, executable by a stranger, a decisive test plan, honest about the one untested environment, and engaging the maintainer's own named fix rather than going around it)
+- Difficulties: one genuine tension, not a failure — the plan comment itself makes no claim about the untested Keras-2.15 leg (so it asserts nothing false), but that disclosure lives in the adjacent repro comment rather than being restated in the plan comment itself. The rubric's "Honesty about unknowns" check still passed, since nothing in the plan comment is an unhedged claim, but a plan comment that has to stand alone without an adjacent repro comment next to it would need to repeat the disclosure.
+- What changed: nothing patched in the rubric; noted the tension above for the next plan comment to watch for.
 
 ---
 
 ## Testing Strategy
 
-[What observable checks prove the fix: your reproduction steps re-run
-against the built change (before and after), and the repo's own test
-suite or checks with the outcome shown. "Tests pass" with nothing
-observable named is not a strategy.]
+The issue's own trigger, re-run before and after the fix:
+
+```
+# Before (main):
+$ python3 -c "import complexnn; complexnn.SqrtInit()((2, 2))"
+AttributeError: 'int' object has no attribute 'dtype'
+
+# After (fix/37-sqrtinit-attributeerror):
+$ python3 -c "import complexnn; print(complexnn.SqrtInit()((2, 2)))"
+tf.Tensor([[0.70710677 0.70710677] [0.70710677 0.70710677]], shape=(2, 2), dtype=float32)
+```
+
+Plus a new regression test (`TestSqrtInit` in `tests/test_init.py`) covering the direct call, the layer-initializer path (`ComplexBN(gamma_diag_initializer=SqrtInit())`), and parity against the already-working `bn.sqrt_init`. Full suite + new tests: 84 passed, 1 xfailed on TensorFlow 2.21.0/Keras 3.15.1; 83 passed, 2 skipped (pre-existing) on TensorFlow 2.21.0 + tf-keras 2.21.0. `ruff check .` and `ruff format --check --diff .` both clean. The plain-TensorFlow-2.15.1 CI leg is explicitly not covered locally (see Reproduction Process) — resting on that PR's own CI run for it, not claiming coverage I don't have.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: ship-gate (new this week), wrapping pr-precheck and `ship-manifest.md` (at the clone root, not uploaded — sourced line by line to `.github/workflows/test_python.yml` and my own dated judgment calls)
+- What it produced: run 1 (against commit `a272a49`) self-caught a real diff-quality problem before `pr-precheck` even graded it formally — a scratch reproduction script (`repro_37.py`) was riding along in the diff. Run 2 (against the rebuilt, clean commit `3ae5288`) passed every manifest row (two rows explicitly excluded with dated reasons; one row explicitly deferred to CI, not silently treated as a pass) and got a clean `accept` from `pr-precheck` on all four checks. Verdict: ship.
+- Difficulties: building the manifest meant actually reading `.github/workflows/test_python.yml` line by line rather than guessing what "ready" means for this repo — the repo has no `CONTRIBUTING.md` to lean on, so every row's source is either the CI file or my own dated judgment.
+- What changed: the branch itself. I preserved the original reproduction commit under a fork tag (`repro-37-evidence`) so the "commit showing reproduction" link above stays valid, then rebuilt `fix/37-sqrtinit-attributeerror` as one clean commit before opening the PR. Full gate log: `~/.claude/skills/ship-gate/gate-log.md`.
 
 ---
 
 ## Implementation Notes
 
-[A running log, added to as you work. Date each entry. What you
-built, decisions you made when you made them, wrong turns included.]
+**2026-10-25**
 
-**[Date]**
+Installed two more venvs to cover the issue's other named environments (plain TF 2.15.1, and TF 2.21 + `tf-keras`). The `tf-keras` one worked on Python 3.13; plain TF 2.15.1 would not install on Python 3.12 or 3.13 at all (no matching wheel on PyPI), and the obvious fix — use the Python 3.11 at `/usr/local/bin/python3.11` — turned out to be a dangling symlink to a framework that isn't actually installed on this machine. Decided not to install a new Python version system-wide just for this one CI leg; disclosed the gap instead and relied on CI.
 
-[Entry]
+Made the one-line fix (`K.sqrt` → `np.sqrt`) and confirmed it against both working environments. Added `TestSqrtInit` to `tests/test_init.py` per the issue's own suggestion (direct call + layer-initializer use), and removed `SqrtInit` from the README's "not working" list, also per the issue.
 
-**[Date]**
+While assembling the PR package for `pr-precheck`/`ship-gate`, caught that my working branch's history (claim → reproduction commit → fix commit) had carried a scratch script, `repro_37.py`, into the diff that would go to the maintainer. Fixed by tagging the reproduction commit on my fork (`repro-37-evidence`, keeping the link in this story's Reproduction Process section valid) and rebuilding the branch as a single clean commit off the real upstream's current `main` before opening the PR.
 
-[Entry]
+Also caught, via `repro-check`'s formal grade of my already-posted repro comment: the comment never stated my OS or how I installed the package, failing two required checks even though the reproduction itself was correct. Edited the live comment to add both and re-graded clean.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: the fix itself was straightforward hand-editing, not tool-built; the toolkit work this week is `ship-gate` (Testing Strategy section above) and `voice-guard` + `CLAUDE.local.md` (unit-6 entry, still in daily use — see the Unit 7 Toolkit entry below for this week's guard catches)
+- What it produced: a working, tested fix and a PR that passed its own gate before going out
+- Difficulties: a local-environment gap (no Python 3.11) that no amount of tooling fixes — only disclosure does
+- What changed: process, not tooling — I now read the actual diff before handing it to `pr-precheck`, instead of trusting that "the fix is right" means "the diff is clean."
 
 ---
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when opened]
+**PR Link:** https://github.com/JesperDramsch/keras-complex/pull/43
 
-**PR Description:** [what the PR says; much of the content above
-adapts into it]
+**PR Description:** What/Before-after/Scope/Testing/AI-disclosure sections, adapted from the Solution Approach and Testing Strategy sections above: names the exact root cause and fix, shows a real before/after transcript of the issue's own trigger, states the deliberate not-in-scope line, names every test run with its command and outcome (including the one CI leg not run locally), and discloses AI assistance even though the repo requires no disclosure.
 
 **Maintainer Feedback:**
 
-- [Date]: [feedback received, or "none yet"; silence is a normal
-  state and costs you nothing]
-- [Date]: [how you addressed it]
+- 2026-10-25: none yet on the PR itself. The `labeler` and `pre-commit.ci` checks passed automatically; the repo's main `Test Python package` workflow (the lint/package/docs/test-matrix job this story's `ship-manifest.md` is sourced from) shows `action_required` — GitHub's standard gate requiring a maintainer to approve workflow runs from a first-time contributor. Not a failure, and not something I can resolve myself; noting it as the normal state it is rather than as a problem.
 
-**Status:** [Awaiting review / Iterating / Merged / Closed. The
-status is a fact you record, never a grade: the PR is graded as
-opened.]
+**Status:** Awaiting review.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: ship-gate (same tool as the Testing Strategy section's entry — its verdict is what cleared this PR to open)
+- What it produced: a PR opened only after a real `ship` verdict, with every manifest row either passing, excluded with a dated reason, or explicitly disclosed as resting on CI
+- Difficulties: none met opening the PR itself; all the real friction (the diff-quality catch, the environment gap) happened before this step and is recorded above
+- What changed: nothing further; this section will get a dated entry whenever CI finishes or the maintainer responds
 
 ---
 
