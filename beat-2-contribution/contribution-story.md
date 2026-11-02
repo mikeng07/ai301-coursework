@@ -66,10 +66,9 @@ Turned the voice guide from something I read before writing into something that 
 
 Built `ship-gate`, which wraps `pr-precheck` with `ship-manifest.md` — a repo-specific checklist I wrote and sourced line by line to `JesperDramsch/keras-complex`'s own `.github/workflows/test_python.yml` (no `CONTRIBUTING.md` exists there to lean on instead). The gate's first real run, against my first fix commit, never got to `pr-precheck`'s formal grade: while assembling the PR package I found my branch's diff still carried `repro_37.py`, a scratch reproduction script, riding along from an earlier commit — exactly what `pr-precheck`'s "Diff quality" check exists to catch. Fixed it by tagging that commit on my fork (`repro-37-evidence`, so my contribution story's reproduction link stays valid) and rebuilding the branch as one clean commit off the real `main`. Run 2, against the rebuilt branch, passed every manifest row (two excluded with dated reasons — a packaging check and a docs build a one-line numeric fix can't plausibly break; one test-matrix leg explicitly deferred to CI because this machine has no working Python 3.11) and got a clean `accept` from `pr-precheck`, so I opened the PR. Separately, this week's `voice-guard` runs caught one real near-miss before I even asked the guard: drafting the PR description, I'd written "81 passed → 84 passed" for the Keras-3 suite without ever having re-run the full suite after adding the new tests — re-ran it for real before the claim went anywhere. Full gate history: `~/.claude/skills/ship-gate/gate-log.md`; this week's guard runs: `~/.claude/skills/voice-guard/guard-log.md`.
 
-**Unit 8: [one line on the tool work]**
+**Unit 8: built pr-monitor, it found my PR was already going to lose to one I didn't know existed**
 
-[2-4 sentences: the PR-monitor and your playbook. What it read, what it
-drafted, what you did with the draft.]
+Built `pr-monitor` (`~/.claude/skills/pr-monitor/`), which reads a PR's live state against a `playbook.md` I wrote before I needed it — review/CI status, silence duration, and, every run regardless of silence, every other PR that closes the same issue. Its first real run on PR #43 found `#40`: another contributor's PR, opened 2026-10-12, three days *before* I claimed issue #37 on 2026-10-15, already fixing the identical bug, and already carrying the maintainer's "good to go form my side" from 2026-10-13. My own `issue-scout` rubric's "Nobody is already on it" check should have caught this at claim time — its evidence-guide names the Development box / linked PRs as required evidence — but my unit-6 grading only checked `assignees` and `comments`, never actually queried for a linked PR. That's a real gap in a tool I graded `accept` five weeks ago, found only because this week's monitor checks a signal that one never did. Drafted a disclosure-and-withdraw comment for PR #43; `voice-guard` caught the first version overclaiming #40's test coverage as something I'd verified myself (I'd only read it in #40's description) — rewrote to attribute the claim and hedge it, then posted and closed #43. Not patching `issue-scout` retroactively; the honest record is five weeks of real tool behavior, not a clean rewrite. Full monitor log: `~/.claude/skills/pr-monitor/monitor-log.md`.
 
 ---
 
@@ -212,6 +211,10 @@ While assembling the PR package for `pr-precheck`/`ship-gate`, caught that my wo
 
 Also caught, via `repro-check`'s formal grade of my already-posted repro comment: the comment never stated my OS or how I installed the package, failing two required checks even though the reproduction itself was correct. Edited the live comment to add both and re-graded clean.
 
+**2026-11-01**
+
+Checked in on PR #43 expecting either silence or a maintainer comment — found neither. Built `pr-monitor` and its playbook first, then ran it for real, and it surfaced `#40`: a second contributor had already fixed this exact bug three days before I even claimed the issue, and the maintainer had already effectively approved it in a comment on 2026-10-13. Confirmed by reading #40 directly rather than taking the monitor's own summary on faith. Decided — and checked with the user before touching a public PR — to disclose the overlap on my own PR and close it myself rather than leave two PRs open for an outcome the maintainer had already signaled. This is the first genuinely bad outcome in this contribution, and it traces to a real gap in my own unit-6 tool, not to anything about this week's fix or PR itself.
+
 **Toolkit**
 
 - Tool: the fix itself was straightforward hand-editing, not tool-built; the toolkit work this week is `ship-gate` (Testing Strategy section above) and `voice-guard` + `CLAUDE.local.md` (unit-6 entry, still in daily use — see the Unit 7 Toolkit entry below for this week's guard catches)
@@ -230,15 +233,16 @@ Also caught, via `repro-check`'s formal grade of my already-posted repro comment
 **Maintainer Feedback:**
 
 - 2026-10-25: none yet on the PR itself. The `labeler` and `pre-commit.ci` checks passed automatically; the repo's main `Test Python package` workflow (the lint/package/docs/test-matrix job this story's `ship-manifest.md` is sourced from) shows `action_required` — GitHub's standard gate requiring a maintainer to approve workflow runs from a first-time contributor. Not a failure, and not something I can resolve myself; noting it as the normal state it is rather than as a problem.
+- 2026-11-01: no direct feedback on #43 itself, ever. Instead, my own `pr-monitor` tool (built this week) found that another contributor's PR, `#40` ("fix: make SqrtInit work with Keras 2 and 3"), opened 2026-10-12 — three days *before* I claimed this issue on 2026-10-15 — already fixes the same bug and already carries the maintainer's sign-off ("good to go form my side," posted 2026-10-13 on #40). My own `issue-scout` rubric should have caught this competing, already-approved PR at claim time and didn't (see the unit-8 Toolkit entry below for why). I disclosed this on my own PR and closed it myself rather than leave two open PRs competing for the same already-decided outcome: https://github.com/JesperDramsch/keras-complex/pull/43#issuecomment-6568084502
 
-**Status:** Awaiting review.
+**Status:** Closed (by me, 2026-11-01, superseded by `#40`, which the maintainer had already effectively approved before I ever opened mine). Not merged, not rejected on its merits — a race I lost before I started it, disclosed and closed honestly rather than left open.
 
 **Toolkit**
 
-- Tool: ship-gate (same tool as the Testing Strategy section's entry — its verdict is what cleared this PR to open)
-- What it produced: a PR opened only after a real `ship` verdict, with every manifest row either passing, excluded with a dated reason, or explicitly disclosed as resting on CI
-- Difficulties: none met opening the PR itself; all the real friction (the diff-quality catch, the environment gap) happened before this step and is recorded above
-- What changed: nothing further; this section will get a dated entry whenever CI finishes or the maintainer responds
+- Tool: ship-gate (same tool as the Testing Strategy section's entry — its verdict is what cleared this PR to open), then pr-monitor (unit 8, see below) for what happened after
+- What it produced: a PR opened only after a real `ship` verdict, with every manifest row either passing, excluded with a dated reason, or explicitly disclosed as resting on CI — and, a week later, the honest finding that it was never going to be the PR that landed
+- Difficulties: none met opening the PR itself; the real friction was discovering, a week later, that a competing PR had existed and been maintainer-approved before mine ever existed
+- What changed: nothing about `ship-gate` — it did its job correctly on the question it was built to answer (is this diff ready to submit). The gap was upstream of it, in `issue-scout`'s claim-time check; see the unit-8 Toolkit entry.
 
 ---
 
@@ -246,25 +250,23 @@ Also caught, via `repro-check`'s formal grade of my already-posted repro comment
 
 **Technical Skills Gained**
 
-[What you learned technically, named concretely.]
+Reading a real traceback down to the exact library internal that raises it (Keras's `backend.sqrt` reading `.dtype` off its argument before computing anything) rather than stopping at the symptom. Building and running a repo's actual CI matrix locally (multiple TensorFlow/Keras version combinations, each needing its own venv) instead of trusting one environment is representative. Writing a rubric-sourced checklist (`ship-manifest.md`) against a real CI config file rather than a generic "lint and test" assumption — every row traces to a specific line in someone else's workflow file or to a dated judgment call I can defend. Managing a fork's remotes cleanly (`origin` = mine, `jesper` = the real upstream, a pre-existing unrelated `upstream` I had to work around) and rewriting branch history safely (tagging a commit before force-pushing over it) when a diff needed cleaning up.
 
 **Challenges Overcome**
 
-[What was hard and how you solved it; point at the real events, the
-Toolkit blocks above are full of them.]
+The concrete technical challenge (the `K.sqrt`/`np.sqrt` fix itself) was small; the real challenges were all process ones, and each produced a real catch: `repro-check` caught a repro comment missing OS/install info after I'd already posted it; building `ship-gate` caught a scratch script riding in my diff before `pr-precheck` graded it formally; `voice-guard` caught an invented-sounding test count in a PR description and, this week, an unverified claim about a competing PR's test coverage; and `pr-monitor` caught the biggest one — a competing, already-approved PR that existed before I ever claimed the issue, which traces to a real evidence-gathering gap in my own unit-6 `issue-scout` grading (checking `assignees`/`comments` but never actually querying for a linked PR). None of these were caught by being careful; all of them were caught by building a tool whose whole job was to check the thing I'd otherwise have taken on faith.
 
 **What I'd Do Differently Next Time**
 
-[Reflection on your process.]
+Query an issue's linked PRs via the API at claim time, not just assignees and comments — `gh api repos/{owner}/{repo}/issues/{n}` doesn't surface `closingIssuesReferences` directly, but a dedicated GraphQL query or `gh pr list --search "linked:{issue}"` would have, and it's a one-line addition to a rubric check that already exists. More generally: every tool this project built caught something real precisely because it checked a thing I hadn't been checking by hand — the pattern that paid off repeatedly was "build the check, then trust it to look at the one thing you'd otherwise assume," and the one place I skipped that discipline (the linked-PR check) is exactly where a real cost showed up, five weeks later.
 
 ---
 
 ## Resources Used
 
-[What actually helped, not a reading list. List things this story
-already shows you using: the doc you followed to set the environment
-up, the thread that explained the bug, the person who answered you.
-One real entry beats ten plausible ones.]
+- The issue's own write-up (https://github.com/JesperDramsch/keras-complex/issues/37): unusually thorough — named the exact failing line, the working sibling function, and a proposed fix — which is most of why reproduction and the fix itself went quickly.
+- `JesperDramsch/keras-complex#40`: another contributor's PR for the same bug, read directly (not just its summary) to confirm the overlap and the maintainer's sign-off before deciding to close my own PR.
+- `.github/workflows/test_python.yml` in the target repo: read line by line to source every row of `ship-manifest.md`, since the repo has no `CONTRIBUTING.md` to lean on instead.
 
 - [Link to documentation that helped]
 - [Discussion, issue, or post that helped]
